@@ -5,7 +5,10 @@
     "storage": "32gb"
   },
   // This devcontainer is based on Ubuntu 24.04 LTS
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  // and comes with MLIR/LLVM pre-built in /workspaces/llvm-project/build
+  "build": {
+    "dockerfile": "DOCKERFILE"
+  },
   "features": {
     // we must install a non-os-provided python to get around
     // the "externally managed environment" restrictions
@@ -50,6 +53,6 @@
   },
   // install pre-commit
   "onCreateCommand": "pip install --user -r requirements-dev.txt && pre-commit install",
-  // fetch and install LLVM/MLIR +  compile HEIR
-  "updateContentCommand": "cd /workspaces/heir/.devcontainer/cmake && ./setup_mlir.sh && ./setup_heir.sh"
+  // compile HEIR
+  "updateContentCommand": "cd /workspaces/heir/.devcontainer/cmake && ./setup_heir.sh"
 }

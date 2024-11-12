@@ -1,0 +1,37 @@
+FROM ubuntu:24.04
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    git \
+    cmake \
+    ninja-build \
+    clang \
+    lld \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone the LLVM repo (shallow) into /workspaces/llvm-project
+# We only want to fetch a single commit (not branch) 
+# and this is (as of late 2024) not possible with just git clone
+ARG LLVM_COMMIT=main
+WORKDIR /workspaces/llvm-project
+RUN git init &&\
+    git remote add origin https://github.com/llvm/llvm-project.git &&\
+    git fetch origin $LLVM_COMMIT --depth 1 &&\
+    git checkout FETCH_HEAD
+
+# configure and build MLIR/LLVM in /workspaces/llvm-project/build
+WORKDIR /workspaces/llvm-project/build
+RUN cmake -G Ninja ../llvm \
+    -DLLVM_ENABLE_PROJECTS=mlir \
+    -DLLVM_TARGETS_TO_BUILD=Native \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DLLVM_USE_SPLIT_DWARF=ON \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DLLVM_USE_LINKER=lld \
+    -DLLVM_OPTIMIZED_TABLEGEN=ON \
+    -DLLVM_CCACHE_BUILD=OFF \
+    -DBUILD_SHARED_LIBS=ON \
+    -DLLVM_INSTALL_UTILS=ON \
+    -DMLIR_INCLUDE_INTEGRATION_TESTS=OFF \
+    && cmake --build . --target mlir-libraries
