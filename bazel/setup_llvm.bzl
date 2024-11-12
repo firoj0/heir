@@ -21,4 +21,5 @@ def setup_llvm(name):
     llvm_configure(
         name = name,
         targets = _LLVM_TARGETS,
+        build_options = ["LLVM_SANITIZER=\"Address\""] if bazel_config == "asan" else [],
     )
